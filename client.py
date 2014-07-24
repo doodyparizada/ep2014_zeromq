@@ -1,18 +1,27 @@
 #!/usr/bin/env python
-import argparse
+import sys
 import zmq
 
-context = zmq.Context()
 
-socket = context.socket(zmq.DEALER)
+DEFAULT = '172.16.16.228'
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-c', '--connect-address', default='tcp://127.0.0.1:5555')
 
-args = parser.parse_args()
+def run(server_ip):
+    context = zmq.Context()
 
-socket.connect(args.connect_address)
-for i in range(10):
-    msg = "Hi server this is my message {}".format(i)
-    socket.send(msg)
-    print socket.recv()
+    socket = context.socket(zmq.DEALER)
+
+    socket.connect('tcp://%s:5555' % server_ip)
+
+    for i in range(10):
+        socket.send_multipart([str(i)])
+        socket.recv()
+
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        ip = sys.argv[1]
+    else:
+        print 'using default %s' % DEFAULT
+        ip = DEFAULT
+    run(ip)
